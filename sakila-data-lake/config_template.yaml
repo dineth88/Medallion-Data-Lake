@@ -1,0 +1,77 @@
+# Data Lake Configuration
+
+# MySQL Source Database
+mysql:
+  host: localhost
+  port: 3306
+  database: sakila
+  user: root
+  password: dfgdfgdf...  # Change this!
+
+# Kafka Configuration
+kafka:
+  bootstrap_servers:
+    - localhost:29092
+  topics:
+    - sakila.actor
+    - sakila.address
+    - sakila.category
+    - sakila.city
+    - sakila.country
+    - sakila.customer
+    - sakila.film
+    - sakila.film_actor
+    - sakila.film_category
+    - sakila.inventory
+    - sakila.language
+    - sakila.payment
+    - sakila.rental
+    - sakila.staff
+    - sakila.store
+
+# S3/MinIO Configuration
+s3:
+  endpoint_url: http://localhost:9000
+  access_key: dfgdfgdfg
+  secret_key: dfgdfgdfg
+  buckets:
+    bronze: datalake-bronze
+    silver: datalake-silver
+    gold: datalake-gold
+
+# Spark Configuration
+spark:
+  master_url: spark://localhost:7077
+  app_name: SakilaDataLake
+  executor_memory: 2g
+  driver_memory: 2g
+
+# Processing Configuration
+processing:
+  bronze:
+    batch_size: 1000
+    buffer_size: 100
+  silver:
+    deduplication: true
+    data_quality_checks: true
+  gold:
+    refresh_frequency: daily
+    
+# Medallion Architecture Layers
+layers:
+  bronze:
+    description: "Raw data from source systems"
+    format: json
+    partitioning: 
+      - year
+      - month
+      - day
+  silver:
+    description: "Cleaned and validated data"
+    format: parquet
+    partitioning:
+      - processed_at
+  gold:
+    description: "Business-ready aggregated data"
+    format: parquet
+    partitioning: []
