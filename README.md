@@ -1,2 +1,4 @@
-# Medallion-Data-Lake
-MySQL (Sakila) → Kafka → Bronze (Raw JSON) → Silver (Clean Parquet) → Gold (Analytics) \                                 ↓ \                             MinIO (S3) \                                 ↓ \                          Spark Processing \
+Bronze Layer: Raw data from MySQL Sakila DB → Kafka → S3
+Silver Layer: Cleaned/transformed data using Spark
+Gold Layer: Business-ready aggregated data
+Storage: MinIO (local S3-compatible)
