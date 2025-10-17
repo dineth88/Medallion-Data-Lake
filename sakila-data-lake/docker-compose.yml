@@ -84,10 +84,32 @@ services:
     networks:
       - data-lake-network
 
+  # PostgreSQL for Analytics
+  postgres:
+    image: postgres:15
+    container_name: postgres-analytics
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - data-lake-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   data-lake-network:
     driver: bridge
 
 volumes:
   minio_data:
+    driver: local
+  postgres_data:
     driver: local

@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json
@@ -22,8 +23,8 @@ class DataLakeQuery:
         self.spark = SparkSession.builder \
             .appName("DataLakeQueryStreamlit") \
             .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:9000") \
-            .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \
-            .config("spark.hadoop.fs.s3a.secret.key", "minioadmin123") \
+            .config("spark.hadoop.fs.s3a.access.key", os.getenv('ACCESS_KEY')) \
+            .config("spark.hadoop.fs.s3a.secret.key", os.getenv('SECRET_KEY')) \
             .config("spark.hadoop.fs.s3a.path.style.access", "true") \
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
             .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262") \

@@ -53,3 +53,29 @@ python query_datalake.py interactive
 python query_datalake.py "SELECT * FROM bronze_film LIMIT 10"
 python query_datalake.py "SELECT COUNT(*) FROM silver_customer WHERE active = 1"
 python query_datalake.py "SELECT * FROM gold_film_performance ORDER BY total_revenue DESC LIMIT 5"
+
+# postgresql gold layer
+
+# Postgres user
+docker exec -it postgres-analytics psql -U analytics -d analytics
+
+# 1. Start PostgreSQL
+docker-compose up -d
+
+# 2. Install required package
+pip install psycopg2-binary
+
+# 3. Load Gold data to PostgreSQL One time
+python gold_to_postgres.py
+
+# 4. Query fast!
+python fast_query.py interactive
+
+# Execute query
+SELECT * FROM customer_summary LIMIT 5;
+SELECT COUNT(*) FROM film_performance;
+SELECT customer_value_tier, COUNT(*) FROM customer_summary GROUP BY customer_value_tier;
+
+# If any erro occured rm
+docker volume ls
+docker volume rm sakila-data-lake_postgres_data
