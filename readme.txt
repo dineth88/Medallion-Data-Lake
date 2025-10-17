@@ -29,6 +29,11 @@ https://www.docker.com/products/docker-desktop
 
 docker compose up -d
 
+# 3. Setup storage
+python setup_minio.py
+
+python orchestrator.py
+
 find errors
 
 docker logs connect 
