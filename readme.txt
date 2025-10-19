@@ -84,3 +84,14 @@ SELECT customer_value_tier, COUNT(*) FROM customer_summary GROUP BY customer_val
 # If any erro occured rm
 docker volume ls
 docker volume rm sakila-data-lake_postgres_data
+
+# to run airflow run docker-cposme comd inside airlow folder
+
+
+Access Airflow UI
+Open your browser and go to:
+http://localhost:8089
+Login with:
+
+Username: admin
+Password: admin

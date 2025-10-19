@@ -104,6 +104,70 @@ services:
       timeout: 5s
       retries: 5
 
+  # PostgreSQL for Airflow
+  postgres-airflow:
+    image: postgres:15
+    container_name: postgres-airflow
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_airflow_data:/var/lib/postgresql/data
+    networks:
+      - data-lake-network
+
+  # Apache Airflow Webserver
+  airflow-webserver:
+    image: apache/airflow:2.7.0
+    container_name: airflow-webserver
+    depends_on:
+      - postgres-airflow
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow123@postgres-airflow:5432/airflow
+      - AIRFLOW__CORE__FERNET_KEY=UKMzEm3yIuFYEq1y3-2FxPNWSVwRASpahmQ9kQfEr8E=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=sakila_airflow_secret_key
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT=300
+    ports:
+      - "8089:8090" 
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - airflow_data:/opt/airflow
+    networks:
+      - data-lake-network
+    command: >
+      bash -c "airflow db migrate &&
+           sleep 10 &&
+           airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@airflow.com --password admin || true &&
+           airflow webserver --port 8090 --workers 1"
+
+  # Apache Airflow Scheduler
+  airflow-scheduler:
+    image: apache/airflow:2.7.0
+    container_name: airflow-scheduler
+    depends_on:
+      - postgres-airflow
+      - airflow-webserver
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow123@postgres-airflow:5432/airflow
+      - AIRFLOW__CORE__FERNET_KEY=UKMzEm3yIuFYEq1y3-2FxPNWSVwRASpahmQ9kQfEr8E=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - airflow_data:/opt/airflow
+    networks:
+      - data-lake-network
+    command: airflow scheduler
+
 networks:
   data-lake-network:
     driver: bridge
@@ -112,4 +176,8 @@ volumes:
   minio_data:
     driver: local
   postgres_data:
+    driver: local
+  postgres_airflow_data:
+    driver: local
+  airflow_data:
     driver: local
