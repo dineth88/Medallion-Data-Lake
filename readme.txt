@@ -95,3 +95,58 @@ Login with:
 
 Username: admin
 Password: admin
+
+
+# ================================= make sure binlog enabled ==============================
+
+Step 2: Enable MySQL Binary Logging
+Edit your MySQL configuration file:
+Location: C:\ProgramData\MySQL\MySQL Server 8.0\my.ini
+Add under [mysqld]:
+ini[mysqld]
+server-id=1
+log_bin=mysql-bin
+binlog_format=ROW
+binlog_row_image=FULL
+expire_logs_days=10
+
+Restart MySQL:
+bash# Run as Administrator
+net stop MySQL80
+net start MySQL80
+Verify:
+bashmysql -u root -p -e "SHOW VARIABLES LIKE 'log_bin';"
+
+# create debezium user
+
+CREATE USER 'debezium'@'%' IDENTIFIED BY 'debezium123';
+GRANT SELECT, RELOAD, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'debezium'@'%';
+FLUSH PRIVILEGES;
+EXIT;
+
+# ======================= with debezium ruun contaners in proper order ====================
+
+# Start Zookeeper and Kafka first
+docker-compose up -d zookeeper kafka
+
+# Wait for Kafka to be fully ready (60 seconds)
+timeout 60
+
+# Verify Kafka is running
+docker logs kafka | findstr "started"
+
+# Now start Debezium
+docker-compose up -d debezium
+
+# =================== Monitor realtime CDC ================================
+
+Step 2: Run Setup
+bashpip install requests
+python setup_debezium.py
+Step 3: Test Real-time CDC
+Terminal 1 - Monitor Kafka:
+bashdocker exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic sakila_cdc.sakila.customer --from-beginning
+Terminal 2 - Make a MySQL change:
+bashmysql -u root -p sakila
+sqlUPDATE customer SET first_name = 'REALTIME_TEST' WHERE customer_id = 1;
+You should see the change appear instantly in Terminal 1!

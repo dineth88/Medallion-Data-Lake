@@ -1,0 +1,23 @@
+Open docker and run
+
+docker compose up -d
+
+make sure binlog enabled 
+
+Step 2: Enable MySQL Binary Logging
+Edit your MySQL configuration file:
+Location: C:\ProgramData\MySQL\MySQL Server 8.0\my.ini
+Add under [mysqld]:
+ini[mysqld]
+server-id=1
+log_bin=mysql-bin
+binlog_format=ROW
+binlog_row_image=FULL
+expire_logs_days=10
+
+Restart MySQL:
+bash# Run as Administrator
+net stop MySQL80
+net start MySQL80
+Verify:
+bashmysql -u root -p -e "SHOW VARIABLES LIKE 'log_bin';"
